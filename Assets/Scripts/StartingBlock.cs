@@ -19,9 +19,14 @@ public class StartingBlock : MonoBehaviour
     public static Rigidbody2D rigidBlock2D;
 
     [SerializeField]
-    public float _speed = 3.5f;
-
+    private float _speed = 3.5f;
+    public float slowDown = 2;
+    private float hangover;
+    private int combo = 0;
+    public int lives = 3;
     public bool hasStacked = false;
+    bool canTrim = true;
+    bool perfectStack;
 
     //we will use the canPressAgain to make a switch toggle when we can press spacebar again
 
@@ -30,7 +35,9 @@ public class StartingBlock : MonoBehaviour
     [SerializeField]
     public float _verticalMovement = -1.5f;
 
+
     //Enabling the game to set the variable currentBlock to this gameobject
+
     private void OnEnable() 
     {
         if (LastBlock == null)
@@ -45,12 +52,6 @@ public class StartingBlock : MonoBehaviour
             
         
     }
-    internal void TrimOnObstacle()
-    {
-
-
-    }
-    
 
     //the below comments are done to add a tag to the method Stop()
 
@@ -65,21 +66,44 @@ public class StartingBlock : MonoBehaviour
             
             _speed = 0;
             //hangover is the part that hangsout and gets trimmed
-            float hangover = transform.position.x - LastBlock.transform.position.x;
+            hangover = transform.position.x - LastBlock.transform.position.x;
             
 
                 if(Mathf.Abs(hangover) >= LastBlock.transform.localScale.x || CurrentBlock.transform.localScale.x < Mathf.Abs(0.1f)){
-
-                    LastBlock = null;
-                    CurrentBlock = null;
-                    SceneManager.LoadScene(0);
+                    //Switches to the next scene in order on build settings, which would be the Gameover scene
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
                 }
-                
+            
             
             float direction = hangover > 0 ? 1f : -1f; //if hangover is greater than 0, we get a value of 1f, else we get a value of -1f
             //calculates the trimming on the currentblock only along with the direction it is at
             
-            CurrentBlock.SplitBlockOnX(hangover, direction);
+            if(Mathf.Abs(hangover) > 0.1f){ 
+                perfectStack = false;
+                CurrentBlock.SplitBlockOnX(hangover, direction);
+
+            } else {
+                perfectStack = true;
+                CurrentBlock.transform.position = new Vector3(LastBlock.transform.position.x, transform.position.y, transform.position.z);
+                
+            }
+
+            
+    }
+    void StackingCombo(){
+
+            // //if(Mathf.Abs(CurrentBlock.hangover) <= 0.1f && CurrentBlock._verticalMovement == 0){
+            // if(perfectStack == true && CurrentBlock._verticalMovement == 0){
+            //     combo++;
+            //     Debug.Log("Combo: "+combo);
+            // }
+            // // if(CurrentBlock._verticalMovement == 0 && Mathf.Abs(CurrentBlock.hangover) > 0.1f){
+            // if(perfectStack == false && CurrentBlock._verticalMovement == 0){
+            //     combo = 0;
+            //     Debug.Log("Combo: "+combo);
+            // }
+
+            //Need to fix this code
     }
 
     private void SplitBlockOnX(float hangover, float direction)
@@ -132,20 +156,36 @@ public class StartingBlock : MonoBehaviour
         transform.Translate(direction * _speed * Time.deltaTime);
         transform.Translate(goingDown * Time.deltaTime);
 
-        //Clamp is only needed to place borders, we can use a collider to stop it from going beyond
+        //checks for W pressed the verticalmovement is still going down and that you have enough stamina, which has to be max value to use
         
-        //transform.position = new Vector3(Mathf.Clamp(transform.position.x,-4f, 4f),transform.position.y, transform.position.z);
-        
+        if(Input.GetKey(KeyCode.W) && _verticalMovement < 0 && StaminaBar.instance.enoughStamina == true){
+            
+            //When the stamina bar is above 30 u can use the W slowing down
+            StaminaBar.instance.UseStamina(0.4f);
+            _speed = 1.5f;
+            StaminaBar.instance.usingStamina = true;
+            transform.Translate(Vector3.up * slowDown * Time.deltaTime);
 
-        
+        } else if(_verticalMovement < 0){
+
+            //when running out of stamina it will stop the slowing down
+            _speed = 5f;
+            StartCoroutine(RechargingStamina());
+        }
+
     }
+            IEnumerator RechargingStamina(){
+
+            yield return new WaitForSeconds(3);
+            StaminaBar.instance.usingStamina = false;
+        }
     void Start() {
         
     }
     // Update is called once per frame
     void Update()
     {
-
+        StackingCombo();
         CalculateMovement();
     }
     //This method is calling the Stop() method when the startingblock collides with the stack
@@ -160,7 +200,7 @@ public class StartingBlock : MonoBehaviour
             
         }
         if(other.gameObject.tag == "Obstacle"){
-
+            
             return; //Do nothing
 
         } else {
@@ -169,14 +209,20 @@ public class StartingBlock : MonoBehaviour
             _verticalMovement = 0;
 
             //makes the currentblock into the lastblock after it is placed so that we can switch between the blocks
-        
+            //gives the block the tag 'Stack' after it is placed
+            gameObject.tag = "Stack";
             LastBlock = CurrentBlock;
+            
                     
             //sets the hasStacked boolean to true
             hasStacked = true;
             
         }
     }
+
+    // IEnumerator LoseALifeRoutine(int seconds){
+    //     CurrentBlock.lives--;
+    //     Debug.Log("Lives: "+lives);
+    //     yield return new WaitForSeconds(seconds);
+    // }
 }
-
-

@@ -7,21 +7,25 @@ public class GameManager : MonoBehaviour
 {
     public int score;
     public bool moveCamera;
-
     int obstacleCount;
-    
+
     private void Start() {
         
         FindObjectOfType<BlockSpawner>().SpawnBlock();  
-        
+        StartCoroutine(CreateObstacleRoutine(5));
     }
     
     private void Update()
     {
+
+            
         //pressing escape takes you to the menu
         if(Input.GetKeyDown(KeyCode.Escape)){
             SceneManager.LoadScene(0);
         }
+
+        
+ 
 
         //Starts the coroutine of the moving camera
         StartCoroutine(moveCameraRoutine());
@@ -40,13 +44,20 @@ public class GameManager : MonoBehaviour
             score++;
             Debug.Log("score: " + score);
         } 
-        StartCoroutine(CreateObstacleRoutine());
+        
 
     }
-    IEnumerator CreateObstacleRoutine() {
-        while(score >= 0){
-            yield return new WaitForSeconds(5);
-        FindObjectOfType<BlockSpawner>().SpawnObstacle();
+    IEnumerator CreateObstacleRoutine(int seconds) { 
+
+        while(true){
+
+            yield return new WaitForSeconds(seconds);
+
+            //Calls the SpawnObstacle() Method which instantiates a new obstacle
+            FindObjectOfType<BlockSpawner>().SpawnObstacle();
+            Debug.Log("Spawning every " +seconds+ " seconds");
+            
+
         }
             
     }
@@ -56,6 +67,7 @@ public class GameManager : MonoBehaviour
         while(moveCamera == true){
             yield return new WaitForSeconds(Mathf.Abs(0.5135f));
             moveCamera = false;
+            }
         }
     }
-}
+
