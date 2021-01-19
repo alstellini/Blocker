@@ -6,19 +6,13 @@ public class BlockSpawner : MonoBehaviour
 {
     [SerializeField]
     private StartingBlock blockPreFab;
-    public static BlockSpawner blockSpawner {get; set;}
 
     [SerializeField]
-    private Obstacle obstacleLeftPreFab;
-    [SerializeField]
-    private Obstacle obstacleRightPreFab;
-    public int spawnDirection = 0;
+    private Obstacle obstaclePreFab;
+    
     public int cloneIncrement;
     public float topOfCameraY;
     private float placeIncrementation;
-    private void Start() {
-        blockSpawner = this;
-    }
     public void SpawnBlock()
     {
         placeIncrementation = CameraController.FindObjectOfType<CameraController>().cameraMoveSpeed;
@@ -26,31 +20,14 @@ public class BlockSpawner : MonoBehaviour
         var block = Instantiate(blockPreFab);
         block.name = "StartingBlock " + cloneIncrement;
         // placing the position of the new block at this flat position
-        block.transform.position = new Vector3(Random.Range(-2f, 2f), Camera.main.transform.position.y + placeIncrementation * 2, transform.position.z);
+        block.transform.position = new Vector3(Random.Range(-4f, 4f), Camera.main.transform.position.y + placeIncrementation * 2, transform.position.z);
         cloneIncrement++;
         
     }
     public void SpawnObstacle(){
-        
-        spawnDirection = Random.Range(1,100);
-
         topOfCameraY = CameraController.FindObjectOfType<CameraController>().topOfCameraY;
-
-        if(spawnDirection <= 49){
-            var obstacleLeft = Instantiate(obstacleLeftPreFab);
-            obstacleLeft.gameObject.SetActive(true);
-            obstacleLeft.transform.position = new Vector3(Wall.wall2.transform.position.x + 0.6f, Camera.main.transform.position.y + 0.6f, transform.position.z);
-            
-        } else {
-
-        if(spawnDirection >= 50){
-            var obstacleRight = Instantiate(obstacleRightPreFab);
-            obstacleRight.gameObject.SetActive(true);
-            obstacleRight.transform.position = new Vector3(Wall.wall1.transform.position.x - 0.6f, Camera.main.transform.position.y + 0.6f, transform.position.z);
-
-            
-        }
+        var obstacle = Instantiate(obstaclePreFab);
+        obstacle.gameObject.SetActive(true);
+        obstacle.transform.position = new Vector3(Wall.wall2.transform.position.x + 0.6f, Camera.main.transform.position.y + 0.6f, transform.position.z);
     }
-}
-
 }

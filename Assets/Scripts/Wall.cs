@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,7 +6,6 @@ public class Wall : MonoBehaviour
 {
     public static Wall wall1 {get; set;}
     public static Wall wall2 {get; set;}
-
     // Start is called before the first frame update
     bool moveCamera;
     [SerializeField]
@@ -17,23 +16,22 @@ public class Wall : MonoBehaviour
         wall2 = GameObject.Find("Wall 2").GetComponent<Wall>();
         moveCamera = FindObjectOfType<GameManager>().moveCamera;
         sizeIncrementation = FindObjectOfType<CameraController>().cameraMoveSpeed;
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        // if(StartingBlock.CurrentBlock._verticalMovement == 0 && transform.localScale.y < 30){
-        //     Debug.Log("Wall has scaled");
-        //     Vector3 wallScale = new Vector3(transform.localScale.x, transform.localScale.y + sizeIncrementation, transform.localScale.z);
-        //     transform.localScale = new Vector3(wallScale.x, wallScale.y, wallScale.z);
-        //     transform.position = new Vector3(transform.localPosition.x, transform.position.y + (sizeIncrementation / 2), transform.localPosition.z);
+        if(StartingBlock.CurrentBlock._verticalMovement == 0 && transform.localScale.y < 30){
+            Debug.Log("Wall has scaled");
+            Vector3 wallScale = new Vector3(transform.localScale.x, transform.localScale.y + sizeIncrementation, transform.localScale.z);
+            transform.localScale = new Vector3(wallScale.x, wallScale.y, wallScale.z);
+            transform.position = new Vector3(transform.localPosition.x, transform.position.y + (sizeIncrementation / 2), transform.localPosition.z);
         
-        // } else if(StartingBlock.CurrentBlock._verticalMovement == 0){
+        } else if(StartingBlock.CurrentBlock._verticalMovement == 0){
 
-        //     transform.position = new Vector3(transform.localPosition.x, transform.position.y + (sizeIncrementation / 2) , transform.localPosition.z);
+            transform.position = new Vector3(transform.localPosition.x, transform.position.y + (sizeIncrementation / 2) , transform.localPosition.z);
 
-        // }
+        }
     }
 
 }

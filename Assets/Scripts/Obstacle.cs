@@ -1,56 +1,40 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Obstacle : MonoBehaviour
 {
     public static Obstacle obstacle {   get; set;   }
-    public GameObject obstacleLeft;
-    public GameObject obstacleRight;
-    public float SpawnDirection;
-    public float obstacleEdge;
-    public float hangoverOnObstacle;
-
     // Start is called before the first frame update
     private void Awake() {
-        obstacleLeft.SetActive(true);
-        obstacleRight.SetActive(true);
-        obstacle = this;
+        
+        if(obstacle == null){
 
+            obstacle = this;
+            StartingBlock.ObstacleBlock = GameObject.FindWithTag("Obstacle").GetComponent<StartingBlock>();
+            Debug.Log("Obstacle name is "+obstacle.name);
+        
+        }
     }
-    private void Update() {
+    private void Start() {
 
-        if(StartingBlock.CurrentBlock.transform.position.x > obstacle.transform.position.x){
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+        if(transform.localScale.x <3) {
+        
+        transform.localScale +=  new Vector3(1f,0,0)* (Time.deltaTime * 2);
+        transform.position +=  new Vector3(0.5f,0,0)* (Time.deltaTime * 2);
+        }  else if(transform.localScale.x >= 3){
             
-            obstacleEdge = Obstacle.obstacle.transform.position.x + (Obstacle.obstacle.transform.localScale.x / 2);
-        } else {
-            obstacleEdge = Obstacle.obstacle.transform.position.x - (Obstacle.obstacle.transform.localScale.x / 2);
-        }
-
-        
-    }
-    // internal void TrimOnObstacle() {
-
-    //     float hangover = transform.position.x - StartingBlock.CurrentBlock.transform.position.x;
-
-    //     float direction = hangover > 0 ? 1 : -1;
-
-        
-    //     SplitXOnObstacle(hangover, direction);
-    // }
-    // private void SplitXOnObstacle(float hangover, float direction){
-    //     float newXSize = StartingBlock.CurrentBlock.transform.localScale.x - Mathf.Abs(hangover);
-    //     float newXPosition;
-    //     float fallingBlockSize;
-
-    //     transform.localScale = new Vector3(newXSize, transform.localScale.y, transform.localScale.z);
-    // }
-    void OnTriggerEnter2D(Collider2D other) {
-        
-        if(other.gameObject == Wall.wall1.gameObject || other.gameObject == Wall.wall2.gameObject){
-
-            Destroy(this.gameObject);
+            transform.position +=  new Vector3(1f,0,0) * (Time.deltaTime * 2);
+            
         }
     }
-}   
     
+    
+}
