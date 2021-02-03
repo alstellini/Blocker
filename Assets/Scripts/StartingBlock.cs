@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.Audio;
 public class StartingBlock : MonoBehaviour
 {
     //currentblock variable to declare the block so that we can have 2 different blocks, the one current and the one placed.
@@ -12,34 +12,17 @@ public class StartingBlock : MonoBehaviour
     public static StartingBlock LastBlock {   get; set;  }
 
     private GameManager gameManager;
-
-    //Made this static to reference the whole script
-    public static StartingBlock startingBlock { get; set; }
-
-    //this is to use the rigidbody Component
-    public static Rigidbody rigidBlock;
-    
-    //this is to use the rigidbody2D Component
-    public static Rigidbody2D rigidBlock2D;
-
+    public int colliding = 0;
     [SerializeField]
     private float _speed = 3.5f;
     public float slowDown = 2;
     public float hangover;
-
+    public float _verticalMovement = -1.5f;
+    public float LastBlockXSize;
     public bool hasStacked = false;
     bool canTrim = true;
     public bool perfectStack = false;
     bool dropCube = false;
-
-
-    public int colliding = 0;
-
-    public float LastBlockXSize;
-
-    [SerializeField]
-    public float _verticalMovement = -1.5f;
-
 
     //Enabling the game to set the variable currentBlock to this gameobject
 
@@ -59,16 +42,10 @@ public class StartingBlock : MonoBehaviour
     }
     private void Awake() {
         gameManager = GameObject.FindObjectOfType<GameManager>();
-        startingBlock = this;
+
     }
 
-    //the below comments are done to add a tag to the method Stop()
-
-    /// <summary>
-    /// If this method is called, the block is trimmed based on their hangover
-    /// </summary>
-    /// <param name="Stop">Parameter value to pass.</param>
-    /// <returns>Returns the hangover value and trims the block it is called upon</returns>
+    
     internal void Stop()
     {
             //turns the speed to zero when the method is called
@@ -80,6 +57,7 @@ public class StartingBlock : MonoBehaviour
 
                 if(Mathf.Abs(hangover) >= LastBlock.transform.localScale.x || CurrentBlock.transform.localScale.x < Mathf.Abs(0.1f)){
                     //Switches to the next scene in order on build settings, which would be the Gameover scene
+                    
                     GameManager.gameManager.gameOver = true;
                 }
             
@@ -93,8 +71,9 @@ public class StartingBlock : MonoBehaviour
                 CurrentBlock.transform.position = new Vector3(LastBlock.transform.position.x, transform.position.y, transform.position.z);
 
                 
-                    gameManager.ComboIncrementation();
-                
+                gameManager.ComboIncrementation();
+
+                GameManager.gameManager.playStackSound = true;
                 Debug.Log("Combo: "+GameManager.gameManager.combo);
                 
             }
@@ -102,8 +81,9 @@ public class StartingBlock : MonoBehaviour
                 
                 SplitBlockOnX(hangover, direction);
                 
-                    gameManager.ComboDecrementation();
+                gameManager.ResetCombo();
 
+                GameManager.gameManager.playStackSound = true;
                 Debug.Log("Combo: "+GameManager.gameManager.combo);
                 
                 
@@ -183,6 +163,16 @@ public class StartingBlock : MonoBehaviour
         
 
     }
+    void CheckForOutOfBounds(){
+        if(CurrentBlock != null){
+            if(CurrentBlock.transform.position.y < (Camera.main.transform.position.y - 5f)){
+                Destroy(CurrentBlock.gameObject);
+                GameManager.gameManager.playDestroySound = true;
+                GameManager.gameManager.gameOver = true;
+                
+            }
+        }
+    }
             IEnumerator RechargingStamina(){
 
             yield return new WaitForSeconds(3);
@@ -194,11 +184,16 @@ public class StartingBlock : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        CheckForOutOfBounds();
 
+        IsGameOver();
+        CalculateMovement();
+    }
+    void IsGameOver(){
         if(GameManager.gameManager.gameOver && CurrentBlock != null){
+            GameManager.gameManager.playDestroySound = true;
             Destroy(CurrentBlock.gameObject);
         }
-        CalculateMovement();
     }
 
     //This method is calling the Stop() method when the startingblock collides with the stack
@@ -216,7 +211,17 @@ public class StartingBlock : MonoBehaviour
             
             return; //Do nothing
 
-        } else {
+        }
+        if(other.gameObject.tag == "Floor"){
+            GameManager.gameManager.gameOver = true;
+        }
+        if(other.gameObject.tag == "Spike"){
+            GameManager.gameManager.playDestroySound = true;
+            GameManager.gameManager.collidedWithObstacle = true;
+            GameManager.gameManager.ResetCombo();
+
+        }
+        if(other.gameObject.tag == "Stack"){
             //this is done so that it checks for a single collision, and doesnt let more happen
             if(colliding == 0) {
             
